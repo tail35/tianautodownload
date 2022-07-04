@@ -1,7 +1,8 @@
 #pragma once
 
 #include "global.h"
-#include <QWebEngineView>
+#include <QtWebEngineWidgets\QWebEngineView>
+//#include <QWebEngineView>
 
 
 class HWebView : public QWebEngineView

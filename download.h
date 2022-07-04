@@ -4,10 +4,10 @@
 #include "ui_download.h"
 #include <QMap>
 #include "getnumbypanfu.h"
-#include <QNetworkReply>
+#include <QtNetwork\QNetworkReply>
 #include "global.h"
-#include <HWebView.h>
-#include <QThread>
+#include "HWebView.h"
+#include <QtCore\QThread>
 
 
 void CreateDir(QString path);

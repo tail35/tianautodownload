@@ -3,7 +3,7 @@
 #include<windows.h>
 #include <tchar.h>
 #include "global.h"
-#include <QMessageBox>
+#include <QtWidgets\QMessageBox>
 
 Http::Http()
 {

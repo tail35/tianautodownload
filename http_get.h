@@ -1,11 +1,11 @@
 #ifndef HTTP_DOWNLOAD_H  
 #define HTTP_DOWNLOAD_H  
-#include <QObject>
-#include <QFile>
-#include <QFileInfo>
-#include <QNetworkAccessManager>
-#include <QNetworkRequest>
-#include <QNetworkReply>
+#include <QtCore\QObject>
+#include <QtCore\QFile>
+#include <QtCore\QFileInfo>
+#include <QtNetwork\QNetworkAccessManager>
+#include <QtNetwork\QNetworkRequest>
+#include <QtNetwork\QNetworkReply>
 
 class Http : public QObject
 {

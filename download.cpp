@@ -1,22 +1,22 @@
 #include "download.h"
 #include<iostream>
-#include <QMessageBox> 
-#include <QTextStream>
-#include <QFile>
-#include <QJsonDocument>
-#include <QJsonObject>
-#include <QJsonArray>
-#include <QNetworkAccessManager>
-#include <QDir>
+#include <QtWidgets\QMessageBox> 
+#include <QtCore\QTextStream>
+#include <QtCore\QFile>
+#include <QtCore\QJsonDocument>
+#include <QtCore\QJsonObject>
+#include <QtCore\QJsonArray>
+#include <QtNetwork\QNetworkAccessManager>
+#include <QtCore\QDir>
 #include "http_get.h"
 #include <shlwapi.h>
-#include <QProcess>
-#include <QCloseEvent>
-#include <QMessageBox>
-#include <QWebEngineProfile>
-#include <QWebEngineHistory>
-#include <QThread>
-#include <QFileIconProvider>
+#include <QtCore\QProcess>
+#include <QtGui\QCloseEvent>
+#include <QtWidgets\QMessageBox>
+#include <QtWebEngineWidgets\QWebEngineProfile>
+#include <QtWebEngineWidgets\QWebEngineHistory>
+#include <QtCore\QThread>
+#include <QtWidgets\QFileIconProvider>
 
 #if defined(_MSC_VER) && (_MSC_VER >= 1600)
 # pragma execution_character_set("utf-8")
@@ -153,6 +153,7 @@ void download::InitWebEngine() {
 	view = new HWebView(this);
 
 	QSize qs2(1024 + 30, 768 + 5);
+	//QSize qs2(906 + 30, 670 + 5);
 	view->resize(qs2);
 
 	QString rnd = generateRandomNumber();
@@ -259,6 +260,8 @@ bool download::DealResponse(QString str)
 			if( value.isString() )
 			{
 				line_utype = value.toString();
+				//test
+				//line_utype = "type9";
 			}
 
 		}

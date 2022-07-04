@@ -1,5 +1,5 @@
-#include <HWebView.h>
-#include <QDesktopServices>
+#include "HWebView.h"
+#include <QtGui\QDesktopServices>
 
 HWebView::HWebView(QWidget *parent)
 	: QWebEngineView(parent) {

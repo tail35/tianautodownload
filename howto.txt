@@ -1,0 +1,31 @@
+
+-------------------
+本工程
+已经升级到qt5.14
+vs2022
+
+-------------------
+qt 安装和环境变量设置，否则找不到头文件。
+https://blog.csdn.net/GiGi_Princess/article/details/120041027
+
+//工程配置好，这个不用
+D:\install\qt5.14\5.14.0\msvc2017_64\bin\uic.exe -o ui_download.h download.ui 
+
+自动寻找qt 依赖的dll.
+D:\install\qt5.14\5.14.0\msvc2017_64\bin\windeployqt.exe download.exe
+
+
+qt5.14 只要运行maintaintool.exe 更新就行。不是必须重装的。
+
+依赖；
+
+ShLwApi.Lib
+qtmain.lib
+Qt5Widgets.lib
+Qt5WebEngine.lib
+Qt5WebView.lib
+Qt5WebEngineWidgets.lib
+Qt5Network.lib
+Qt5Help.lib
+Qt5Gui.lib
+Qt5Core.lib
