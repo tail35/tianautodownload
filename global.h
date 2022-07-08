@@ -12,6 +12,12 @@ const QString DOWN_FILE = "download.php";
 const QString UPDATE_TXT = "update.txt";
 const QString LogFileName = "log.txt";
 
+enum DOWNLOAD_STATUS
+{	
+	DS_SUCESS_NEED_DELETE,//need remove item from download list.
+	DS_FAILD_NEED_REDOWN, //need redownload the item.don't remove item from list.
+	DS_DO_NOTHING
+};
 enum HASH_COMPARE
 {	
 	HASH_PARAM_ERROR=1,

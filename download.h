@@ -63,6 +63,7 @@ public:
 	}
 
 public:
+		
 	QString cur_panfu;
 	QString cur_ms;
 	QString cur_mb;
@@ -97,7 +98,7 @@ private:
 	void GetuType();
 	//void DownloadFile();
 	//void UpdateFile();
-	void UpdateFileNew();
+	void UpdateFileNew(DOWNLOAD_STATUS ds);
 	bool DealResponse(QString str);
 	void DealUpdateTxt(QString str);
 	void GetUpdateTxt();
@@ -135,13 +136,16 @@ public slots:
 	
 	void OrderFinished(const QString &);
 	//QString FinishedOneDownload(QString rdir);
-	QString HttpSuccessCallBack(QString dir);
+	QString HttpDownloadFinishedCallBack(QString dir, DOWNLOAD_STATUS ds);
+	
 	//QString DownloadSize(qint64 size);
 	void GetuTypeResponse(QNetworkReply* reply);
 	void GetUpdateTxtRes_callback(QNetworkReply* reply);
 private:
 	Ui::downloadClass ui;
 
+	//download item.if download filed,need readd to list.
+	FileObj* mTmp;
 	//totalnum
 	int totalNum = 0;
 

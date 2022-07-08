@@ -17,6 +17,7 @@
 #include <QtWebEngineWidgets\QWebEngineHistory>
 #include <QtCore\QThread>
 #include <QtWidgets\QFileIconProvider>
+#include <synchapi.h>
 
 #if defined(_MSC_VER) && (_MSC_VER >= 1600)
 # pragma execution_character_set("utf-8")
@@ -27,6 +28,7 @@ download::download(QWidget *parent)
 	: QMainWindow(parent)
 {
 	ui.setupUi(this);
+	mTmp = 0;
 	this->setWindowIcon(QIcon("images/logo.ico"));
 	setWindowTitle("下载");
 	Init();
@@ -259,9 +261,9 @@ bool download::DealResponse(QString str)
 			QJsonValue value = jsonObject.value("utype");
 			if( value.isString() )
 			{
-				line_utype = value.toString();
+				//line_utype = value.toString();
 				//test
-				//line_utype = "type9";
+				line_utype = "type9";
 			}
 
 		}
@@ -439,17 +441,26 @@ void download::StartDownloadNew() {
 	//init progress again.
 	this->ui.update_progressBar->setRange(0, newupdate_list.size());
 	this->ui.update_progressBar->setValue(0);
-	UpdateFileNew();
+	UpdateFileNew(DOWNLOAD_STATUS::DS_DO_NOTHING);
 }
 
 
 
-void download::UpdateFileNew()
+void download::UpdateFileNew(DOWNLOAD_STATUS ds)
 {
+	if (ds == DOWNLOAD_STATUS::DS_SUCESS_NEED_DELETE) {//sucess,need delete.
+		newupdate_list.pop_front();
+		delete mTmp;
+		mTmp = 0;
+	}else if (ds == DOWNLOAD_STATUS::DS_FAILD_NEED_REDOWN){
+		Sleep(1);
+	}else if (ds == DOWNLOAD_STATUS::DS_DO_NOTHING) {
+
+	}
 	if (0 != newupdate_list.size()) {
 		FileObj* item = newupdate_list.at(0);
-		newupdate_list.pop_front();
-
+		//newupdate_list.pop_front();
+		mTmp = item;
 		Http* pd = new Http();//need delete.
 		//QString rurl = QString(domain) + line_utype + "/" + item->rdir;
 		QString durl = QString(domain) + DOWN_FILE;
@@ -816,18 +827,19 @@ void download::OrderFinished(const QString &) {
 	ui.update_progressBar->setValue(100);
 	QMessageBox::information(NULL, "更新", "成功更新完毕！", QMessageBox::Yes);
 }
-QString download::HttpSuccessCallBack(QString dir) {
+QString download::HttpDownloadFinishedCallBack(QString dir, DOWNLOAD_STATUS ds) {
 
-	if (true == IsInLst(newupdate_list,dir)) {
-		RemoveLst(newupdate_list,dir);
-	}
-	if (0 == newupdate_list.size()) {		
+	/*UpdateFileNew(DOWNLOAD_STATUS::DS_FAILD_NEED_REDOWN);*/
+	//if (true == IsInLst(newupdate_list,dir)) {
+	//	RemoveLst(newupdate_list,dir);
+	//}
+	if (0 == newupdate_list.size()) {
 		startWorkInAThread();
 	}
 	else {
 		//change progress
 		ui.update_progressBar->setValue( totalNum - newupdate_list.size() );
-		UpdateFileNew();
+		UpdateFileNew(ds);
 	}
 	return "";
 }

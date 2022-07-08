@@ -107,59 +107,77 @@ void Http::replyFinished(QNetworkReply *reply) {
 	//qDebug() << result;
 
 	//无错误返回  
-	if (reply->error() == QNetworkReply::NoError)
+	if (reply->error() == QNetworkReply::NoError && 200== status_code)
 	{		
 		//return ok
 		file->close();
-		QString retVal;
-		QMetaObject::invokeMethod(mparent, "HttpSuccessCallBack", Qt::DirectConnection,
-			Q_RETURN_ARG(QString, retVal),
-			Q_ARG(QString, mrdir));
+		Finished(reply, DOWNLOAD_STATUS::DS_SUCESS_NEED_DELETE);
+		//QString retVal;
+		//QMetaObject::invokeMethod(mparent, "HttpDownloadFinishedCallBack", Qt::DirectConnection,
+		//	Q_RETURN_ARG(QString, retVal),
+		//	Q_ARG(QString, mrdir),
+		//	Q_ARG(int, DOWNLOAD_STATUS::DS_SUCESS_NEED_DELETE)
+		//);
 		//QByteArray bytes = reply->readAll();  //获取字节
 		//QString result(bytes);  //转化为字符串
 		//qDebug() << result;
 	}
 	else
 	{
-		IsContinue( QString(QString::fromLocal8Bit("下载错误%1")).arg(status_code.toString()), reply);
-		//处理错误
-		if (400 == status_code.toInt()) {
-		}
+		//redownload
+		Finished(reply, DOWNLOAD_STATUS::DS_FAILD_NEED_REDOWN);
+		//QString retVal;
+		//QMetaObject::invokeMethod(mparent, "HttpDownloadFinishedCallBack", Qt::DirectConnection,
+		//	Q_RETURN_ARG(QString, retVal),
+		//	Q_ARG(QString, mrdir),
+		//	Q_ARG(int, DOWNLOAD_STATUS::DS_FAILD_NEED_REDOWN)
+		//);
+		//IsContinue( QString(QString::fromLocal8Bit("下载错误%1")).arg(status_code.toString()), reply);
+		////处理错误
+		//if (400 == status_code.toInt()) {
+		//}
 	}
 
 	reply->deleteLater();//要删除reply，但是不能在repyfinished里直接delete，要调用deletelater;
 	this->deleteLater();
 }
 
-void Http::Finished(QNetworkReply *reply) {
-
+void Http::Finished(QNetworkReply *reply, DOWNLOAD_STATUS ds) {
 	QString retVal;
-	QMetaObject::invokeMethod(mparent, "HttpSuccessCallBack", Qt::DirectConnection,
+	QMetaObject::invokeMethod(mparent, "HttpDownloadFinishedCallBack", Qt::DirectConnection,
 		Q_RETURN_ARG(QString, retVal),
-		Q_ARG(QString, mrdir));
+		Q_ARG(QString, mrdir),
+		Q_ARG(DOWNLOAD_STATUS, ds)
+	);
 	//disconnect(accessManager, SIGNAL(finished(QNetworkReply*)), this, SLOT(replyFinished(QNetworkReply*)));
 	//disconnect((QObject *)reply, SIGNAL(readyRead()), this, SLOT(onReadyRead()));
 	reply->deleteLater();
 }
 
-void Http::IsContinue(QString title, QNetworkReply *reply) {
-	QMessageBox msgBox;
-	msgBox.setInformativeText(title);	
-	QPushButton *yesButton = msgBox.addButton(QString::fromLocal8Bit("忽略错误，继续下载?"), QMessageBox::ActionRole);
-	QPushButton *cancelButton = msgBox.addButton(QString::fromLocal8Bit("退出?"), QMessageBox::ActionRole);
-	//QPushButton *abortButton = msgBox.addButton(QMessageBox::Abort);
-	msgBox.exec();
-	if (msgBox.clickedButton() == (QAbstractButton*)yesButton) {
-		Finished(reply);
-	}
-	else if (msgBox.clickedButton() == (QAbstractButton*)cancelButton) {
-		exit(0);
-	}
-}
+//void Http::IsContinue(QString title, QNetworkReply *reply) {
+//	QMessageBox msgBox;
+//	msgBox.setInformativeText(title);	
+//	QPushButton *yesButton = msgBox.addButton(QString::fromLocal8Bit("忽略错误，继续下载?"), QMessageBox::ActionRole);
+//	QPushButton *cancelButton = msgBox.addButton(QString::fromLocal8Bit("退出?"), QMessageBox::ActionRole);
+//	//QPushButton *abortButton = msgBox.addButton(QMessageBox::Abort);
+//	msgBox.exec();
+//	if (msgBox.clickedButton() == (QAbstractButton*)yesButton) {
+//		Finished(reply);
+//	}
+//	else if (msgBox.clickedButton() == (QAbstractButton*)cancelButton) {
+//		exit(0);
+//	}
+//}
 
 void Http::metaDataChanged() {
 	QVariant status_code = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute);
 	int res = status_code.toInt();
+	qDebug() << "start-------------";
+	QList<QByteArray> headerList = reply->rawHeaderList();
+	foreach(QByteArray head, headerList) {
+		qDebug() << head << ":" << reply->rawHeader(head);
+	}
+	qDebug() << "end-------------end";
 	if ( 200 == res && false == hasInit) {
 		QByteArray qb = QString("code").toUtf8();
 		bool ishas = reply->hasRawHeader(qb);
@@ -170,7 +188,7 @@ void Http::metaDataChanged() {
 
 			switch (ncode)
 			{
-			case HASH_PARAM_ERROR:
+			case HASH_PARAM_ERROR:				
 			case HASH_SERVER_NO_FILE:
 				{
 					QString title;
@@ -180,19 +198,21 @@ void Http::metaDataChanged() {
 					else {
 						title = QString( QString::fromLocal8Bit("服务器没有这个文件！") + mrdir );
 					}
-					IsContinue( title, reply);
-				}
-				break;
+					LogText(LogFileName, title);
+					//IsContinue( title, reply);
+				}				
 			case HASH_EQUAL:
 				{
-					Finished(reply);
+					Finished(reply, DOWNLOAD_STATUS::DS_SUCESS_NEED_DELETE);
 				}
 				break;
 			case HASH_WILL_DOWNLOAD:
 				{
 					bool res = file->open(QIODevice::Truncate | QIODevice::WriteOnly | QIODevice::ReadOnly);
 					if (!res) {
-						IsContinue(QString(QString::fromLocal8Bit("无法打开文件,dir:%1")).arg(savedir), reply);
+						QString str = QString(QString::fromLocal8Bit("无法打开文件,dir:%1")).arg(savedir);
+						//IsContinue(QString(QString::fromLocal8Bit("无法打开文件,dir:%1")).arg(savedir), reply);
+						LogText(LogFileName, str);
 					}
 					connect(accessManager, SIGNAL(finished(QNetworkReply*)), this, SLOT(replyFinished(QNetworkReply*)));
 					connect((QObject *)reply, SIGNAL(readyRead()), this, SLOT(onReadyRead()));
@@ -205,7 +225,9 @@ void Http::metaDataChanged() {
 			k++;
 		}
 		else {
-			IsContinue(QString(QString::fromLocal8Bit("没有code头,dir:%1")).arg(mrdir), reply);
+			Finished(reply, DOWNLOAD_STATUS::DS_FAILD_NEED_REDOWN);
+			//IsContinue(QString(QString::fromLocal8Bit("没有code头,dir:%1")).arg(mrdir), reply);
+
 		}
 	}
 }
