@@ -27,10 +27,18 @@ enum HASH_COMPARE
 };
 
 class FileObj {
+
 public:
+	FileObj() {
+		rdir = "";
+		size = 0;
+		hash = "";
+		reDownNum = 0;
+	}
 	QString rdir;
 	qint64 size;
 	QString hash;
+	int reDownNum;
 };
 
 

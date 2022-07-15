@@ -193,10 +193,10 @@ void Http::metaDataChanged() {
 				{
 					QString title;
 					if (HASH_PARAM_ERROR == ncode) {
-						title = QString(QString::fromLocal8Bit("下载错误，参数错误%1")).arg(finalUrl);
+						title = QString("下载错误，参数错误%1").arg(finalUrl);
 					}
 					else {
-						title = QString( QString::fromLocal8Bit("服务器没有这个文件！") + mrdir );
+						title = QString("服务器没有这个文件！") + mrdir ;
 					}
 					LogText(LogFileName, title);
 					//IsContinue( title, reply);
@@ -210,7 +210,7 @@ void Http::metaDataChanged() {
 				{
 					bool res = file->open(QIODevice::Truncate | QIODevice::WriteOnly | QIODevice::ReadOnly);
 					if (!res) {
-						QString str = QString(QString::fromLocal8Bit("无法打开文件,dir:%1")).arg(savedir);
+						QString str = QString("无法打开文件,dir:%1").arg(savedir);
 						//IsContinue(QString(QString::fromLocal8Bit("无法打开文件,dir:%1")).arg(savedir), reply);
 						LogText(LogFileName, str);
 					}

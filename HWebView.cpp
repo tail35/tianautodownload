@@ -21,10 +21,12 @@ void HWebView::Init(QUrl url) {
 
 void HWebView::onUrlChanged(QUrl url) {
 	QString str = url.toString();
-
-	if (-1 == str.indexOf("adv.php")) {
+	
+	if (-1 != str.indexOf("tian=111") ) {
 		mOldUrl = url;
 		this->back();
+		LogText(LogFileName,QString("willopen:%1").arg(url.toString()));
+		
 		QDesktopServices::openUrl(url);
 	}
 }

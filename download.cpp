@@ -159,7 +159,7 @@ void download::InitWebEngine() {
 	view->resize(qs2);
 
 	QString rnd = generateRandomNumber();
-	QString url = domain + advuri+ "?ran=" + rnd;
+	QString url = domain + advuri+ "?" + rnd;
 	view->Init(url);
 }
 
@@ -459,12 +459,21 @@ void download::UpdateFileNew(DOWNLOAD_STATUS ds)
 	}
 	if (0 != newupdate_list.size()) {
 		FileObj* item = newupdate_list.at(0);
+		if (item->reDownNum > 3) {
+			newupdate_list.pop_front();
+			if (0 == newupdate_list.size()) {
+				startWorkInAThread();
+			}
+			delete item;
+			item = newupdate_list.at(0);
+		}
 		//newupdate_list.pop_front();
 		mTmp = item;
 		Http* pd = new Http();//need delete.
 		//QString rurl = QString(domain) + line_utype + "/" + item->rdir;
 		QString durl = QString(domain) + DOWN_FILE;
 		QString fdir = cur_ms +"\\"+ item->rdir;
+		item->reDownNum++;
 		pd->httpDownload(this, durl, fdir, item->rdir, line_utype);
 	}
 	//	qDebug() << item->rdir;
@@ -927,8 +936,8 @@ void download::GetUpdateTxt() {
 	namUpload = new QNetworkAccessManager(this);
 	QObject::connect(namUpload, SIGNAL(finished(QNetworkReply*)),
 		this, SLOT(GetUpdateTxtRes_callback(QNetworkReply*)));
-
-	QString rurl = QString(domain) + line_utype + "/"+ UPDATE_TXT;
+	QString rnd = generateRandomNumber();
+	QString rurl = QString(domain) + line_utype + "/"+ UPDATE_TXT+"?"+rnd;
 	QUrl url(rurl);
 	qDebug() << "querurl:" << rurl;
 	//QNetworkReply* reply = namUpload->post(QNetworkRequest(url), js.toUtf8());
@@ -978,8 +987,8 @@ void download::GetuTypeResponse(QNetworkReply* reply)
 		reply->attribute(QNetworkRequest::HttpStatusCodeAttribute);
 
 	if (200 != statusCodeV) {
-		QString str = QString::number(statusCodeV.toInt());
-		QMessageBox::information(NULL, QString::fromLocal8Bit("查询"), QString::fromLocal8Bit("查询类型失败,httperr:") + str, QMessageBox::Yes | QMessageBox::No);
+		QString str = QString::number(statusCodeV.toInt());		
+		QMessageBox::information(NULL, "查询","查询类型失败,httperr:" + str, QMessageBox::Yes | QMessageBox::No);
 		return;
 	}
 
@@ -1030,7 +1039,8 @@ void download::GetuType()
 	QObject::connect(namUpload, SIGNAL(finished(QNetworkReply*)),
 		this, SLOT(GetuTypeResponse(QNetworkReply*)));
 	
-	QString rurl = QString(domain) + "only_query_uType.php";
+	QString rnd = generateRandomNumber();
+	QString rurl = QString(domain) + "only_query_uType.php"+"?"+rnd;
 	QUrl url(rurl);
 	qDebug() << "querurl:"<<rurl;
 	QNetworkReply* reply = namUpload->post(QNetworkRequest(url), js.toUtf8());
