@@ -261,9 +261,9 @@ bool download::DealResponse(QString str)
 			QJsonValue value = jsonObject.value("utype");
 			if( value.isString() )
 			{
-				//line_utype = value.toString();
+				line_utype = value.toString();
 				//test
-				line_utype = "type999";
+				//line_utype = "type999";
 			}
 
 		}
