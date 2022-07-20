@@ -263,7 +263,7 @@ bool download::DealResponse(QString str)
 			{
 				//line_utype = value.toString();
 				//test
-				line_utype = "type9";
+				line_utype = "type999";
 			}
 
 		}
@@ -457,12 +457,17 @@ void download::UpdateFileNew(DOWNLOAD_STATUS ds)
 	}else if (ds == DOWNLOAD_STATUS::DS_DO_NOTHING) {
 
 	}
+	if (0 == newupdate_list.size()) {
+		startWorkInAThread();
+		return;
+	}
 	if (0 != newupdate_list.size()) {
 		FileObj* item = newupdate_list.at(0);
 		if (item->reDownNum > 3) {
 			newupdate_list.pop_front();
 			if (0 == newupdate_list.size()) {
 				startWorkInAThread();
+				return;
 			}
 			delete item;
 			item = newupdate_list.at(0);
@@ -474,6 +479,9 @@ void download::UpdateFileNew(DOWNLOAD_STATUS ds)
 		QString durl = QString(domain) + DOWN_FILE;
 		QString fdir = cur_ms +"\\"+ item->rdir;
 		item->reDownNum++;
+		QString dstr;
+		dstr = QString("dir:%1 rdown:%2").arg(item->rdir).arg( item->reDownNum );
+		LogText(LogFileName, dstr);
 		pd->httpDownload(this, durl, fdir, item->rdir, line_utype);
 	}
 	//	qDebug() << item->rdir;
@@ -846,9 +854,11 @@ QString download::HttpDownloadFinishedCallBack(QString dir, DOWNLOAD_STATUS ds) 
 		startWorkInAThread();
 	}
 	else {
+		
+		UpdateFileNew(ds);
 		//change progress
 		ui.update_progressBar->setValue( totalNum - newupdate_list.size() );
-		UpdateFileNew(ds);
+		
 	}
 	return "";
 }
