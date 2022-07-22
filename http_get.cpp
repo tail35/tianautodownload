@@ -4,6 +4,7 @@
 #include <tchar.h>
 #include "global.h"
 #include <QtWidgets\QMessageBox>
+#include <QTimer>
 
 Http::Http()
 {
@@ -47,7 +48,7 @@ BOOL CreateDirTree(LPCTSTR lpPath)
 	return TRUE;
 }
 
-void Http::httpDownload(QObject* parent,QString& strurl, QString& dir, QString& rdir, QString& uType) {
+void Http::httpDownload(download* parent,QString& strurl, QString& dir, QString& rdir, QString& uType) {
 
 	mparent = parent;
 	mrdir = rdir;
@@ -67,15 +68,16 @@ void Http::httpDownload(QObject* parent,QString& strurl, QString& dir, QString& 
 	savedir = dir;
 	file = new QFile(dir);
 	QString hash;
+	QString dirEncode = QUrl::toPercentEncoding(rdir);
+	
 	if (file->exists()) {
 		QString hash = GetMd5(dir);
 		hash = hash.toLower();
-		strurl = QString("%1?hash=%2&rdir=%3&uType=%4&XDEBUG_SESSION_START=PHPSTORM").arg(strurl).arg(hash).arg(rdir).arg(uType);
+		strurl = QString("%1?hash=%2&rdir=%3&uType=%4&XDEBUG_SESSION_START=PHPSTORM").arg(strurl).arg(hash).arg(dirEncode).arg(uType);
 		//res = file->open(QIODevice::Truncate | QIODevice::WriteOnly | QIODevice::ReadOnly);//只写方式打开文件  		
 	}
 	else {
-		strurl = QString("%1?hash=%2&rdir=%3&uType=%4&XDEBUG_SESSION_START=PHPSTORM").arg(strurl).arg("NEED_DOWN_IMEDIAE").arg(rdir).arg(uType);
-		
+		strurl = QString("%1?hash=%2&rdir=%3&uType=%4&XDEBUG_SESSION_START=PHPSTORM").arg(strurl).arg("NEED_DOWN_IMEDIAE").arg(dirEncode).arg(uType);		
 	}
 	finalUrl = strurl;
 	QUrl url(strurl);
@@ -94,10 +96,19 @@ void Http::httpDownload(QObject* parent,QString& strurl, QString& dir, QString& 
 	reply = accessManager->get(request);//通过发送数据，返回值保存在reply指针里.
 
 	//connect(reply, SIGNAL(downloadProgress(qint64, qint64)), this, SLOT(onDownloadProgress(qint64, qint64)));//download文件时进度
-	//connect((QObject *)reply, SIGNAL(readyRead()), this, SLOT(onReadyRead()));	
+	//connect((QObject *)reply, SIGNAL(readyRead()), this, SLOT(onReadyRead()));		
 	connect((QObject *)reply, SIGNAL(metaDataChanged()), this, SLOT(metaDataChanged()));
+	QTimer::singleShot(10000, this, &Http::ConnectTimeOut);
+	bConn = false;
 	
 }
+
+void Http::ConnectTimeOut() {
+	if (!bConn) {
+		Finished(reply, DOWNLOAD_STATUS::DS_FAILD_NEED_REDOWN);
+	}
+}
+
 /***************响应结束**************************/
 void Http::replyFinished(QNetworkReply *reply) {
 	//获取响应的信息，状态码为200表示正常  
@@ -112,15 +123,6 @@ void Http::replyFinished(QNetworkReply *reply) {
 		//return ok
 		file->close();
 		Finished(reply, DOWNLOAD_STATUS::DS_SUCESS_NEED_DELETE);
-		//QString retVal;
-		//QMetaObject::invokeMethod(mparent, "HttpDownloadFinishedCallBack", Qt::DirectConnection,
-		//	Q_RETURN_ARG(QString, retVal),
-		//	Q_ARG(QString, mrdir),
-		//	Q_ARG(int, DOWNLOAD_STATUS::DS_SUCESS_NEED_DELETE)
-		//);
-		//QByteArray bytes = reply->readAll();  //获取字节
-		//QString result(bytes);  //转化为字符串
-		//qDebug() << result;
 	}
 	else
 	{
@@ -143,15 +145,16 @@ void Http::replyFinished(QNetworkReply *reply) {
 }
 
 void Http::Finished(QNetworkReply *reply, DOWNLOAD_STATUS ds) {
-	QString retVal;
-	QMetaObject::invokeMethod(mparent, "HttpDownloadFinishedCallBack", Qt::DirectConnection,
-		Q_RETURN_ARG(QString, retVal),
+	
+	QMetaObject::invokeMethod((QObject*)mparent, "HttpDownloadFinishedCallBack", Qt::QueuedConnection,		
 		Q_ARG(QString, mrdir),
-		Q_ARG(DOWNLOAD_STATUS, ds)
+		Q_ARG(int, (int)ds)
 	);
 	//disconnect(accessManager, SIGNAL(finished(QNetworkReply*)), this, SLOT(replyFinished(QNetworkReply*)));
-	//disconnect((QObject *)reply, SIGNAL(readyRead()), this, SLOT(onReadyRead()));
+	//disconnect((QObject *)reply, SIGNAL(readyRead()), this, SLOT(onReadyRead()));	
 	reply->deleteLater();
+	reply->destroyed();
+	accessManager->destroyed();
 }
 
 //void Http::IsContinue(QString title, QNetworkReply *reply) {
@@ -170,6 +173,7 @@ void Http::Finished(QNetworkReply *reply, DOWNLOAD_STATUS ds) {
 //}
 
 void Http::metaDataChanged() {
+	bConn = true;
 	QVariant status_code = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute);
 	int res = status_code.toInt();
 	qDebug() << "start-------------";

@@ -263,7 +263,7 @@ bool download::DealResponse(QString str)
 			{
 				line_utype = value.toString();
 				//test
-				//line_utype = "type999";
+				//line_utype = "type9";
 			}
 
 		}
@@ -444,10 +444,17 @@ void download::StartDownloadNew() {
 	UpdateFileNew(DOWNLOAD_STATUS::DS_DO_NOTHING);
 }
 
-
+//DeleteHttp()
+//{
+//
+//}
 
 void download::UpdateFileNew(DOWNLOAD_STATUS ds)
 {
+	if (mThttp) {
+		delete mThttp;
+		mThttp = 0;
+	}
 	if (ds == DOWNLOAD_STATUS::DS_SUCESS_NEED_DELETE) {//sucess,need delete.
 		newupdate_list.pop_front();
 		delete mTmp;
@@ -475,6 +482,7 @@ void download::UpdateFileNew(DOWNLOAD_STATUS ds)
 		//newupdate_list.pop_front();
 		mTmp = item;
 		Http* pd = new Http();//need delete.
+		mThttp = pd;
 		//QString rurl = QString(domain) + line_utype + "/" + item->rdir;
 		QString durl = QString(domain) + DOWN_FILE;
 		QString fdir = cur_ms +"\\"+ item->rdir;
@@ -844,7 +852,7 @@ void download::OrderFinished(const QString &) {
 	ui.update_progressBar->setValue(100);
 	QMessageBox::information(NULL, "更新", "成功更新完毕！", QMessageBox::Yes);
 }
-QString download::HttpDownloadFinishedCallBack(QString dir, DOWNLOAD_STATUS ds) {
+void download::HttpDownloadFinishedCallBack(QString dir, int ds) {
 
 	/*UpdateFileNew(DOWNLOAD_STATUS::DS_FAILD_NEED_REDOWN);*/
 	//if (true == IsInLst(newupdate_list,dir)) {
@@ -855,12 +863,12 @@ QString download::HttpDownloadFinishedCallBack(QString dir, DOWNLOAD_STATUS ds) 
 	}
 	else {
 		
-		UpdateFileNew(ds);
+		UpdateFileNew((DOWNLOAD_STATUS)ds);
 		//change progress
 		ui.update_progressBar->setValue( totalNum - newupdate_list.size() );
 		
 	}
-	return "";
+	//return "";
 }
 
 

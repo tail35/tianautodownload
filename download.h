@@ -8,7 +8,7 @@
 #include "global.h"
 #include "HWebView.h"
 #include <QtCore\QThread>
-
+#include "http_get.h"
 
 void CreateDir(QString path);
 
@@ -136,14 +136,15 @@ public slots:
 	
 	void OrderFinished(const QString &);
 	//QString FinishedOneDownload(QString rdir);
-	QString HttpDownloadFinishedCallBack(QString dir, DOWNLOAD_STATUS ds);
+	 void HttpDownloadFinishedCallBack(QString dir, int ds);
 	
 	//QString DownloadSize(qint64 size);
 	void GetuTypeResponse(QNetworkReply* reply);
 	void GetUpdateTxtRes_callback(QNetworkReply* reply);
 private:
 	Ui::downloadClass ui;
-
+	//temp for delete
+	Http* mThttp=0;
 	//download item.if download filed,need readd to list.
 	FileObj* mTmp;
 	//totalnum

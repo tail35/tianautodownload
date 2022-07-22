@@ -11,6 +11,9 @@ int main(int argc, char *argv[])
 
 	QString runPath = QCoreApplication::applicationDirPath();
 
+	//test
+
+
 	download w;
 	w.show();
 	return a.exec();
